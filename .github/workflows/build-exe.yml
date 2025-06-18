@@ -1,0 +1,53 @@
+name: Build EXE
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: Install dependencies
+      run: |
+        pip install pyinstaller
+
+    - name: Download and install qpdf
+      run: |
+        curl -LO https://github.com/qpdf/qpdf/releases/download/v12.2.0/qpdf-12.2.0-mingw64.zip
+        unzip qpdf-12.2.0-mingw64.zip -d qpdf
+        echo "qpdf/qpdf-12.2.0-mingw64/bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+    - name: Build EXE
+      run: |
+        pyinstaller --onefile --distpath . join.py
+
+    - name: Copiar qpdf e DLLs para subpasta qpdf/
+      run: |
+        New-Item -ItemType Directory -Force -Path qpdf
+        Copy-Item qpdf/qpdf-12.2.0-mingw64/bin/qpdf.exe qpdf/ -Force
+        Copy-Item qpdf/qpdf-12.2.0-mingw64/bin/qpdf30.dll qpdf/ -Force
+        Copy-Item qpdf/qpdf-12.2.0-mingw64/bin/libgcc_s_seh-1.dll qpdf/ -Force
+        Copy-Item qpdf/qpdf-12.2.0-mingw64/bin/libstdc++-6.dll qpdf/ -Force
+        Copy-Item qpdf/qpdf-12.2.0-mingw64/bin/libwinpthread-1.dll qpdf/ -Force
+
+    - name: Upload EXE e qpdf
+      uses: actions/upload-artifact@v4
+      with:
+        name: join-exe
+        path: |
+          join.exe
+          qpdf/qpdf.exe
+          qpdf/qpdf30.dll
+          qpdf/libgcc_s_seh-1.dll
+          qpdf/libstdc++-6.dll
+          qpdf/libwinpthread-1.dll
