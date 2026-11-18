@@ -29,9 +29,9 @@ jobs:
 
     - name: Build EXE
       run: |
-        pyinstaller --onefile --distpath . join.py
+        pyinstaller --onefile --name pdftools --distpath . main.py
 
-    - name: Copiar qpdf e DLLs para subpasta qpdf/
+    - name: Copy qpdf and DLLs to qpdf/ subfolder
       run: |
         New-Item -ItemType Directory -Force -Path qpdf
         Copy-Item qpdf/qpdf-12.2.0-mingw64/bin/qpdf.exe qpdf/ -Force
@@ -40,12 +40,12 @@ jobs:
         Copy-Item qpdf/qpdf-12.2.0-mingw64/bin/libstdc++-6.dll qpdf/ -Force
         Copy-Item qpdf/qpdf-12.2.0-mingw64/bin/libwinpthread-1.dll qpdf/ -Force
 
-    - name: Upload EXE e qpdf
+    - name: Upload EXE and qpdf
       uses: actions/upload-artifact@v4
       with:
-        name: join-exe
+        name: pdftools-exe
         path: |
-          join.exe
+          pdftools.exe
           qpdf/qpdf.exe
           qpdf/qpdf30.dll
           qpdf/libgcc_s_seh-1.dll
